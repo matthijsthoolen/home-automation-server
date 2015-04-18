@@ -3,6 +3,8 @@
 //$developerkey = $_REQUEST['key'];
 //$plugininfo = $_REQUEST['info'];
 
+require_once('general.php');
+
 start();
 
 
@@ -10,12 +12,13 @@ start();
  *
  */
 function start() {
+	
 	$data = getData();
+	
 	$returndata = getVersionFile($data);
 	
+	$returndata = createFolder($returndata);
 	//TODO: CHECK IF PLUGIN ALREADY EXISTS!
-	
-	//TODO: make downloadfolder with unique id
 	
 	output(false, $returndata, null);
 }
@@ -78,22 +81,6 @@ function getUniqueID($data) {
 }
 
 
-/* 
- *
- */
-function output($error, $stdout, $stderr) {
-	$json = array();
-	
-	$json['error'] = $error;
-	$json['data'] = $stdout;
-	$json['stderr'] = $stderr;
-	//$json['data']['id'] = 1;
-
-	echo json_encode($json);
-	exit;
-}
-
-
 /*
  * Read from file, checks if is readable and if the json is an array. 
  * @param {String} filename
@@ -102,7 +89,7 @@ function output($error, $stdout, $stderr) {
 function readFileContent($filename) {
 	
 	if (!is_readable($filename)) {
-		output(true, null, 'File is not accessible.');
+		output(true, null, 'File is not accessible. File:' . $filename);
 	}
 	
 	$content = json_decode(file_get_contents($filename), true);
@@ -123,11 +110,62 @@ function readFileContent($filename) {
  */
 function writeFileContent($filename, $content) {
 	if (!is_writable($filename)) {
-		output(true, null, 'Can\'t write to version file');
+		output(true, null, 'Can\'t write to file: ' . $filename);
 	}
 	
 	file_put_contents($filename, json_encode($content));
 	
 	return;
 }
+
+
+/*
+ * Create a new folder for the plugin
+ *
+ * @param {array} data
+ */
+function createFolder($data) {
+	$id = $data['id'];
+	
+	$path = '/home/cabox/workspace/home-automation-server/plugins/';
+	
+	if (!checkPermission($path, '0777', true)) {
+		output(true, null, 'We can not create a folder for the plugin due to permission problems');
+	}
+	
+	$newfolder = $path . $id;
+	
+	if (!is_dir($newfolder)) {
+		try {
+    		mkdir($newfolder, 0777, true);
+		} catch (Exception $e) {
+			output(true, null, $e);
+		}
+	}
+	
+	$data['folder'] = $id;
+	
+	return $data;
+}
+
+
+/*
+ * Check the permission of a file or item and try to fix it
+ *
+ * @param {string} path
+ * @param {permission} permission
+ * @param {boolean} fix: try to fix it? (default false)
+ */
+function checkPermission($path, $permission, $fix = false) {
+	
+	$current = substr(sprintf('%o', fileperms($path)), -4);
+	
+	//Check if equals
+	if ($permission !== $current) {		
+		return false;
+	}
+	
+	return true;	
+	
+} 
 ?>
