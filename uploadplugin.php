@@ -14,6 +14,14 @@ $targetfile = $version . '.tar.gz';
 
 $target = $pluginpath . $targetfolder . '/' . $targetfile;
 
+setVersion($pluginid, $version);
+
+//Check if the directory already exists, else register first
+if (!is_dir($pluginpath . $targetfolder)) {
+	output(true, null, 'Plugin directory not found, please register first!');
+}
+
+//Check if the file already exists
 if (file_exists($target)) {
 	output(true, null, 'This version has already been uploaded!');
 }
