@@ -79,6 +79,8 @@ function addNewPlugin($data) {
 	$data['id'] = $id;
 	
 	setVersionFile($content);
+	
+	return $data;
 }
 
 
