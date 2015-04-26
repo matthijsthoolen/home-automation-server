@@ -92,7 +92,8 @@ function setVersion($id, $version) {
 	
 	$curVersion = $content['server'][$id]['version'];
 	
-	if ($curVersion >= $version) {
+	//Check if the uploaded version is to old
+	if ($curVersion > $version) {
 		output(true, null, 'There is already a newer version available (' . $curVersion. ')');
 	}
 	
